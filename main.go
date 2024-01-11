@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -8,15 +9,35 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"github.com/mladenovic-13/rss-aggregator/internal/database"
 )
+
+type Context struct {
+	DB *database.Queries
+}
 
 func main() {
 	godotenv.Load()
 
 	port := os.Getenv("PORT")
+	dbUrl := os.Getenv("DB_URL")
 
 	if port == "" {
 		log.Fatal("PORT is not found in environment variables")
+	}
+	if dbUrl == "" {
+		log.Fatal("DB_URL is not found in environment variables")
+	}
+
+	dbConnection, err := sql.Open("postgres", dbUrl)
+
+	if err != nil {
+		log.Fatal("Can not connect to database: ", err)
+	}
+
+	ctx := Context{
+		DB: database.New(dbConnection),
 	}
 
 	router := chi.NewRouter()
@@ -34,6 +55,8 @@ func main() {
 	v1Router := chi.NewRouter()
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/error", handlerError)
+	v1Router.Post("/users", ctx.handlerCreateUser)
+
 	router.Mount("/v1", v1Router)
 
 	srv := &http.Server{
@@ -42,7 +65,7 @@ func main() {
 	}
 
 	log.Printf("Server starting on port: %s", port)
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 
 	if err != nil {
 		log.Fatal(err)
