@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/mladenovic-13/rss-aggregator/internal/database"
 )
@@ -51,4 +52,28 @@ func (ctx *Context) handlerGetFeeds(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, 200, databaseFeedsToFeeds(feeds))
+}
+
+func (ctx *Context) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.Request, user database.User) {
+	feedFollowId := chi.URLParam(r, "feedFollowId")
+	uuid, err := uuid.Parse(feedFollowId)
+
+	if err != nil {
+		respondWithError(w, 400, "Feed Follow ID is not valid UUID")
+	}
+
+	if feedFollowId == "" {
+		respondWithError(w, 400, "FeedFollow ID missing")
+	}
+
+	err = ctx.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
+		ID:     uuid,
+		UserID: user.ID,
+	})
+
+	if err != nil {
+		respondWithError(w, 400, "Failed to delete feed follow")
+	}
+
+	respondWithJSON(w, 200, struct{}{})
 }

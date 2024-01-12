@@ -44,7 +44,7 @@ func (ctx *Context) handlerGetFeedFollows(w http.ResponseWriter, r *http.Request
 	feeds, err := ctx.DB.GetFeedFollows(r.Context(), user.ID)
 
 	if err != nil {
-		respondWithError(w, 400, "Failed to find feeds")
+		respondWithError(w, 400, "Failed to get feed follows")
 		return
 	}
 
