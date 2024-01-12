@@ -53,9 +53,15 @@ func main() {
 	router.Use(cors.Handler(corsOptions))
 
 	v1Router := chi.NewRouter()
+
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/error", handlerError)
+
 	v1Router.Post("/users", ctx.handlerCreateUser)
+	v1Router.Get("/users", ctx.middlewareAuth(ctx.handlerGetUser))
+
+	v1Router.Post("/feeds", ctx.middlewareAuth(ctx.handlerCreateFeed))
+	v1Router.Get("/feeds", ctx.handlerGetFeeds)
 
 	router.Mount("/v1", v1Router)
 

@@ -36,5 +36,9 @@ func (ctx *Context) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	respondWithJSON(w, 201, databaseUserToUser(user))
+}
+
+func (ctx *Context) handlerGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	respondWithJSON(w, 200, databaseUserToUser(user))
 }
