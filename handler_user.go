@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -41,4 +42,17 @@ func (ctx *Context) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 
 func (ctx *Context) handlerGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	respondWithJSON(w, 200, databaseUserToUser(user))
+}
+
+func (ctx *Context) handlerGetPostsForUsers(w http.ResponseWriter, r *http.Request, user database.User) {
+	posts, err := ctx.DB.GetPostsForUser(r.Context(), database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit:  10,
+	})
+
+	if err != nil {
+		log.Println("failed to get posts for user: ", err)
+	}
+
+	respondWithJSON(w, http.StatusOK, posts)
 }
